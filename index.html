@@ -15,20 +15,28 @@
 
     body {
       margin: 0;
-      min-height: 100vh;
+      min-height: 100dvh;
       display: grid;
       place-items: center;
       font-family: Arial, Helvetica, sans-serif;
       background: radial-gradient(circle at top, #292929, #0d0d0d 65%);
       color: #fff;
-      padding: 24px;
+      padding: clamp(10px, 2.5vmin, 28px);
     }
 
     .nft-card {
-      width: min(92vw, 420px);
+      container-type: inline-size;
+      /* Poster is 2:3; card ≈ poster + footer. Fit width and height of viewport, keep proportions. */
+      --card-footer-h: 11.5rem;
+      --body-pad-y: clamp(10px, 2.5vmin, 28px);
+      width: min(
+        min(92vw, 720px),
+        calc((100dvh - 2 * var(--body-pad-y) - var(--card-footer-h)) * 2 / 3)
+      );
+      max-width: 100%;
       background: rgba(255, 255, 255, 0.06);
       border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 16px;
+      border-radius: clamp(10px, 2vmin, 16px);
       overflow: hidden;
       box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
       backdrop-filter: blur(6px);
@@ -38,10 +46,10 @@
       width: 100%;
       display: grid;
       place-items: end start;
-      aspect-ratio: 2/3;
+      aspect-ratio: 2 / 3;
       position: relative;
       overflow: hidden;
-      padding: 18px;
+      padding: clamp(10px, 3.5cqw, 22px);
       transition: filter 0.4s ease, transform 0.4s ease;
     }
 
@@ -52,7 +60,7 @@
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       grid-template-rows: repeat(4, 1fr);
-      gap: 2px;
+      gap: clamp(1px, 0.45cqw, 3px);
     }
 
     .poster-tile {
@@ -90,36 +98,36 @@
       position: relative;
       z-index: 2;
       text-transform: uppercase;
-      letter-spacing: 1px;
+      letter-spacing: 0.06em;
       font-weight: 700;
       line-height: 1.05;
-      font-size: clamp(1.4rem, 6vw, 2.4rem);
+      font-size: clamp(0.85rem, 6cqw + 0.35rem, 2.35rem);
       max-width: 90%;
       text-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
     }
 
     .content {
-      padding: 14px 16px 18px;
+      padding: clamp(10px, 3cqw, 16px) clamp(12px, 3.5cqw, 18px) clamp(12px, 3.5cqw, 20px);
     }
 
     .title {
       margin: 0;
-      font-size: 1.2rem;
+      font-size: clamp(0.95rem, 3.8cqw, 1.25rem);
       letter-spacing: 0.2px;
     }
 
     .meta {
       margin: 8px 0 2px;
-      font-size: 0.95rem;
+      font-size: clamp(0.8rem, 2.8cqw, 0.98rem);
       opacity: 0.9;
     }
 
     .tag {
       display: inline-block;
       margin-top: 10px;
-      padding: 6px 10px;
+      padding: clamp(4px, 1.2cqw, 8px) clamp(8px, 2.2cqw, 12px);
       border-radius: 999px;
-      font-size: 0.85rem;
+      font-size: clamp(0.72rem, 2.4cqw, 0.88rem);
       background: rgba(255, 255, 255, 0.12);
       border: 1px solid rgba(255, 255, 255, 0.3);
     }
@@ -127,11 +135,11 @@
     .original-toggle {
       display: block;
       width: 100%;
-      margin-top: 14px;
-      padding: 10px 14px;
+      margin-top: clamp(10px, 2.5cqw, 14px);
+      padding: clamp(8px, 2.2cqw, 12px) clamp(10px, 2.8cqw, 16px);
       border-radius: 10px;
       font: inherit;
-      font-size: 0.95rem;
+      font-size: clamp(0.82rem, 2.8cqw, 0.98rem);
       font-weight: 600;
       color: #fff;
       cursor: pointer;
@@ -394,6 +402,21 @@
     toggleOriginalBtn.addEventListener("click", () => {
       originalColorsMode = !originalColorsMode;
       syncPosterVisuals();
+    });
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen().catch(() => {});
+      }
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key !== "f" && e.key !== "F") return;
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      e.preventDefault();
+      toggleFullscreen();
     });
   </script>
 </body>
