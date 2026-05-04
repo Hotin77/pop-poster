@@ -221,7 +221,6 @@
       },
     ];
 
-    const getRandomItem = (arr) => arr[Math.floor(Math.random() * arr.length)];
     const FALLBACK_POSTER_URL = "https://picsum.photos/900/1350";
     let currentPosterUrl = FALLBACK_POSTER_URL;
     const AUTO_SHUFFLE_INTERVAL_MS = 2000;
@@ -267,6 +266,29 @@
       }
     }
 
+    function localDateKey(d = new Date()) {
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    }
+
+    function hashDayKeyToIndex(key) {
+      let h = 2166136261;
+      for (let i = 0; i < key.length; i += 1) {
+        h ^= key.charCodeAt(i);
+        h = Math.imul(h, 16777619);
+      }
+      return (h >>> 0) % colorSpaces.length;
+    }
+
+    function getColorSpaceForLocalDate(d = new Date()) {
+      return colorSpaces[hashDayKeyToIndex(localDateKey(d))];
+    }
+
+    function msUntilNextLocalMidnight() {
+      const now = new Date();
+      const next = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0, 0);
+      return next.getTime() - now.getTime();
+    }
+
     function shuffle(arr) {
       const copy = [...arr];
       for (let i = copy.length - 1; i > 0; i -= 1) {
@@ -306,7 +328,7 @@
       probe.src = imageUrl;
     }
 
-    let activeColorSpace = getRandomItem(colorSpaces);
+    let activeColorSpace = getColorSpaceForLocalDate(new Date());
 
     let originalColorsMode = false;
 
@@ -317,25 +339,6 @@
       tintBackground: activeColorSpace.tint,
       imageFilter: activeColorSpace.imageFilter,
     };
-
-    function pickDifferentColorSpace(current) {
-      if (colorSpaces.length <= 1) return colorSpaces[0];
-      let next;
-      do {
-        next = getRandomItem(colorSpaces);
-      } while (next.name === current.name);
-      return next;
-    }
-
-    function randomizeColorSpace() {
-      activeColorSpace = pickDifferentColorSpace(activeColorSpace);
-      nftVisuals.posterFilter = activeColorSpace.filter;
-      nftVisuals.posterBackground = buildOriginalPosterBackground(activeColorSpace);
-      nftVisuals.gridFilter = activeColorSpace.imageFilter;
-      nftVisuals.tintBackground = activeColorSpace.tint;
-      nftVisuals.imageFilter = activeColorSpace.imageFilter;
-      syncPosterVisuals();
-    }
 
     const posterElement = document.getElementById("poster");
     const posterGridElement = document.getElementById("posterGrid");
@@ -370,7 +373,8 @@
         posterTintElement.style.background = nftVisuals.tintBackground;
         posterTintElement.style.opacity = "0.42";
         setTileFilters(nftVisuals.imageFilter);
-        colorSpaceTagElement.textContent = "NFT filter: " + activeColorSpace.name;
+        colorSpaceTagElement.textContent =
+          "Today's NFT filter: " + activeColorSpace.name + " · " + localDateKey();
         toggleOriginalBtn.textContent = "View original poster colors";
         toggleOriginalBtn.setAttribute("aria-pressed", "false");
       }
@@ -378,6 +382,27 @@
 
     posterTintElement.style.background = nftVisuals.tintBackground;
     syncPosterVisuals();
+
+    function applyDailyColorSpace(d = new Date()) {
+      activeColorSpace = getColorSpaceForLocalDate(d);
+      nftVisuals.posterFilter = activeColorSpace.filter;
+      nftVisuals.posterBackground = buildOriginalPosterBackground(activeColorSpace);
+      nftVisuals.gridFilter = activeColorSpace.imageFilter;
+      nftVisuals.tintBackground = activeColorSpace.tint;
+      nftVisuals.imageFilter = activeColorSpace.imageFilter;
+      syncPosterVisuals();
+    }
+
+    function scheduleDailyColorSpaceAtMidnight() {
+      const delay = Math.max(1, msUntilNextLocalMidnight());
+      setTimeout(() => {
+        applyDailyColorSpace(new Date());
+        applyPosterPieces(currentPosterUrl);
+        scheduleDailyColorSpaceAtMidnight();
+      }, delay);
+    }
+
+    scheduleDailyColorSpaceAtMidnight();
 
     (async () => {
       const movieFromApi = await getTopMovieThisMonth();
@@ -394,7 +419,6 @@
 
       setInterval(() => {
         if (document.visibilityState !== "visible") return;
-        randomizeColorSpace();
         applyPosterPieces(currentPosterUrl);
       }, AUTO_SHUFFLE_INTERVAL_MS);
     })();
