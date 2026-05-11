@@ -26,12 +26,10 @@
 
     .nft-card {
       container-type: inline-size;
-      /* Poster is 2:3; card ≈ poster + footer. Fit width and height of viewport, keep proportions. */
-      --card-footer-h: 11.5rem;
       --body-pad-y: clamp(10px, 2.5vmin, 28px);
       width: min(
         min(92vw, 720px),
-        calc((100dvh - 2 * var(--body-pad-y) - var(--card-footer-h)) * 2 / 3)
+        calc((100dvh - 2 * var(--body-pad-y)) * 2 / 3)
       );
       max-width: 100%;
       background: rgba(255, 255, 255, 0.06);
@@ -93,76 +91,12 @@
       pointer-events: none;
       background: linear-gradient(180deg, transparent 45%, rgba(0, 0, 0, 0.6));
     }
-
-    .poster-text {
-      position: relative;
-      z-index: 2;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      font-weight: 700;
-      line-height: 1.05;
-      font-size: clamp(0.85rem, 6cqw + 0.35rem, 2.35rem);
-      max-width: 90%;
-      text-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
-    }
-
-    .content {
-      padding: clamp(10px, 3cqw, 16px) clamp(12px, 3.5cqw, 18px) clamp(12px, 3.5cqw, 20px);
-    }
-
-    .title {
-      margin: 0;
-      font-size: clamp(0.95rem, 3.8cqw, 1.25rem);
-      letter-spacing: 0.2px;
-    }
-
-    .meta {
-      margin: 8px 0 2px;
-      font-size: clamp(0.8rem, 2.8cqw, 0.98rem);
-      opacity: 0.9;
-    }
-
-    .tag {
-      display: inline-block;
-      margin-top: 10px;
-      padding: clamp(4px, 1.2cqw, 8px) clamp(8px, 2.2cqw, 12px);
-      border-radius: 999px;
-      font-size: clamp(0.72rem, 2.4cqw, 0.88rem);
-      background: rgba(255, 255, 255, 0.12);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-    }
-
-    .original-toggle {
-      display: block;
-      width: 100%;
-      margin-top: clamp(10px, 2.5cqw, 14px);
-      padding: clamp(8px, 2.2cqw, 12px) clamp(10px, 2.8cqw, 16px);
-      border-radius: 10px;
-      font: inherit;
-      font-size: clamp(0.82rem, 2.8cqw, 0.98rem);
-      font-weight: 600;
-      color: #fff;
-      cursor: pointer;
-      background: rgba(255, 255, 255, 0.14);
-      border: 1px solid rgba(255, 255, 255, 0.35);
-      transition: background 0.2s ease, border-color 0.2s ease;
-    }
-
-    .original-toggle:hover {
-      background: rgba(255, 255, 255, 0.22);
-      border-color: rgba(255, 255, 255, 0.5);
-    }
-
-    .original-toggle:focus-visible {
-      outline: 2px solid #fff;
-      outline-offset: 2px;
-    }
   </style>
 </head>
 <body>
   <article class="nft-card">
-    <section id="poster" class="poster" aria-label="AI generated inspired movie NFT poster">
-      <div id="posterGrid" class="poster-grid" aria-label="Most watched movie poster split into sixteen pieces">
+    <section id="poster" class="poster">
+      <div id="posterGrid" class="poster-grid">
         <div class="poster-tile" data-piece="0"></div>
         <div class="poster-tile" data-piece="1"></div>
         <div class="poster-tile" data-piece="2"></div>
@@ -181,15 +115,6 @@
         <div class="poster-tile" data-piece="15"></div>
       </div>
       <div id="posterTint" class="poster-tint"></div>
-      <div id="posterText" class="poster-text"></div>
-    </section>
-    <section class="content">
-      <h1 id="movieTitle" class="title"></h1>
-      <p id="watchCount" class="meta"></p>
-      <span id="colorSpaceTag" class="tag"></span>
-      <button type="button" id="toggleOriginalBtn" class="original-toggle" aria-pressed="false">
-        View original poster colors
-      </button>
     </section>
   </article>
 
@@ -224,11 +149,6 @@
     const FALLBACK_POSTER_URL = "https://picsum.photos/900/1350";
     let currentPosterUrl = FALLBACK_POSTER_URL;
     const AUTO_SHUFFLE_INTERVAL_MS = 2000;
-    const getCurrentMonthYear = () => {
-      const now = new Date();
-      return now.toLocaleString("en-US", { month: "long", year: "numeric" });
-    };
-
     function randomInt(min, max) {
       return Math.floor(Math.random() * (max - min + 1)) + min;
     }
@@ -343,11 +263,6 @@
     const posterElement = document.getElementById("poster");
     const posterGridElement = document.getElementById("posterGrid");
     const posterTintElement = document.getElementById("posterTint");
-    const posterTextElement = document.getElementById("posterText");
-    const movieTitleElement = document.getElementById("movieTitle");
-    const watchCountElement = document.getElementById("watchCount");
-    const colorSpaceTagElement = document.getElementById("colorSpaceTag");
-    const toggleOriginalBtn = document.getElementById("toggleOriginalBtn");
 
     function setTileFilters(value) {
       document.querySelectorAll(".poster-tile").forEach((tile) => {
@@ -363,9 +278,6 @@
         posterTintElement.style.background = nftVisuals.tintBackground;
         posterTintElement.style.opacity = "0";
         setTileFilters("none");
-        colorSpaceTagElement.textContent = "Original poster colors";
-        toggleOriginalBtn.textContent = "View NFT color space";
-        toggleOriginalBtn.setAttribute("aria-pressed", "true");
       } else {
         posterElement.style.filter = nftVisuals.posterFilter;
         posterElement.style.background = nftVisuals.posterBackground;
@@ -373,10 +285,6 @@
         posterTintElement.style.background = nftVisuals.tintBackground;
         posterTintElement.style.opacity = "0.42";
         setTileFilters(nftVisuals.imageFilter);
-        colorSpaceTagElement.textContent =
-          "Today's NFT filter: " + activeColorSpace.name + " · " + localDateKey();
-        toggleOriginalBtn.textContent = "View original poster colors";
-        toggleOriginalBtn.setAttribute("aria-pressed", "false");
       }
     }
 
@@ -406,27 +314,17 @@
 
     (async () => {
       const movieFromApi = await getTopMovieThisMonth();
-      const monthYear = getCurrentMonthYear();
       // Render immediately so user never sees an empty poster.
       applyPosterPieces(FALLBACK_POSTER_URL);
 
       // Replace with API poster only if it successfully loads.
       if (movieFromApi.posterUrl) setPosterWithFallback(movieFromApi.posterUrl);
 
-      movieTitleElement.textContent = movieFromApi.title;
-      posterTextElement.textContent = "NFT COLOR SPACE EDITION";
-      watchCountElement.textContent = "Most watched in " + monthYear;
-
       setInterval(() => {
         if (document.visibilityState !== "visible") return;
         applyPosterPieces(currentPosterUrl);
       }, AUTO_SHUFFLE_INTERVAL_MS);
     })();
-
-    toggleOriginalBtn.addEventListener("click", () => {
-      originalColorsMode = !originalColorsMode;
-      syncPosterVisuals();
-    });
 
     function toggleFullscreen() {
       if (!document.fullscreenElement) {
@@ -437,10 +335,16 @@
     }
 
     document.addEventListener("keydown", (e) => {
-      if (e.key !== "f" && e.key !== "F") return;
       if (e.ctrlKey || e.metaKey || e.altKey) return;
-      e.preventDefault();
-      toggleFullscreen();
+      const k = e.key.length === 1 ? e.key.toLowerCase() : "";
+      if (k === "f") {
+        e.preventDefault();
+        toggleFullscreen();
+      } else if (k === "c") {
+        e.preventDefault();
+        originalColorsMode = !originalColorsMode;
+        syncPosterVisuals();
+      }
     });
   </script>
 </body>

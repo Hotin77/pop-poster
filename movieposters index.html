@@ -131,10 +131,6 @@
     ];
 
     const getRandomItem = (arr) => arr[Math.floor(Math.random() * arr.length)];
-    const getCurrentMonthYear = () => {
-      const now = new Date();
-      return now.toLocaleString("en-US", { month: "long", year: "numeric" });
-    };
 
     function randomInt(min, max) {
       return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -157,35 +153,14 @@
       ].join(",");
     }
 
-    async function getTopMovieThisMonthTitle() {
-      try {
-        const response = await fetch("https://v1.connkt.art/api/movie-poster");
-        const data = await response.json();
-        return data?.title || data?.movieTitle || "Most Watched This Month";
-      } catch (_) {
-        return "Most Watched This Month";
-      }
-    }
-
     const randomColorSpace = getRandomItem(colorSpaces);
 
     const posterElement = document.getElementById("poster");
-    const posterTextElement = document.getElementById("posterText");
-    const movieTitleElement = document.getElementById("movieTitle");
-    const watchCountElement = document.getElementById("watchCount");
     const colorSpaceTagElement = document.getElementById("colorSpaceTag");
 
     posterElement.style.filter = randomColorSpace.filter;
     posterElement.style.background = buildOriginalPosterBackground(randomColorSpace);
     colorSpaceTagElement.textContent = "NFT filter: " + randomColorSpace.name;
-
-    (async () => {
-      const titleFromApi = await getTopMovieThisMonthTitle();
-      const monthYear = getCurrentMonthYear();
-      movieTitleElement.textContent = titleFromApi;
-      posterTextElement.textContent = "ORIGINAL NFT EDITION";
-      watchCountElement.textContent = "Most watched in " + monthYear + " (inspired artwork only)";
-    })();
   </script>
 </body>
 </html>
